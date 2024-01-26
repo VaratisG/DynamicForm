@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Form Enviroment</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .addButtons{
+            margin-left: 150px;
+            border-radius: 100px;
+            font-size: 20px;
+        }
+
+        fieldset{
+            border: 1px solid black;
+            width: 30%;
+            margin-left: 95px;
+            background-color: beige;
+        }
+    </style>
+</head>
+<body style="background-color: azure;">
+    <label style="font-weight: 500; font-size: 80px;">Custom Form Enviroment</label>
+    <form id="customForm">
+        <button class="addButtons" type="button" onclick="addField('text')">Add Text Field</button>
+        <button class="addButtons" type="button" onclick="addField('select')">Add Select Field</button>
+        <br>
+        <br>
+        <br>
+        <fieldset id="formBox" style=" visibility: hidden;">
+            <label style="font-weight: 300; font-size: 40px;">Form</label>
+          <div id="formFields"></div>
+
+          <br>
+          <button type="button" onclick="saveData()">Submit Data</button>
+        </fieldset>
+    </form>
+    
+
+    <table id="dataTable">
+        <thead style=" background-color:bisque;">
+            <tr></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        let formDataList = [];
+        let selectFieldCounter = 0;
+
+        //This function runs whenever the user uses one of the add Field buttons, depending on which one he uses, different field is made
+        //It works with a container that had id=formFields and whenever a new field is added, it goes to that container 
+        function addField(fieldType) {
+            const fieldContainer = document.getElementById('formFields');
+            const newField = document.createElement('div');
+            const nameField = prompt('Name the field');
+
+            if (fieldType === 'text') {
+                newField.innerHTML = `
+                    <label for="${fieldType}">${nameField}</label>
+                    <input type="${fieldType}" name="${fieldType}" required>
+                    <button type="button" onclick="removeField(this)">Remove</button>
+                `;
+            } else if (fieldType === 'select') {
+                const options = prompt('Enter options for the radio buttons (comma-separated):');
+                const optionArray = options.split(',').map(option => option.trim());
+
+                const uniqueId = `select_${selectFieldCounter++}`;
+                const optionsHTML = optionArray.map(option => `<input type="radio" name="${uniqueId}" value="${option}">${option}`).join('');
+
+                newField.innerHTML = `
+                    <label id="${uniqueId}" for="select">${nameField}</label>
+                    ${optionsHTML}
+                    <button type="button" onclick="removeField(this)">Remove</button>
+                `;
+            }
+
+            fieldContainer.appendChild(newField);
+            document.getElementById('formBox').style.visibility = 'visible'; 
+        }
+
+        //Removes a field from the container
+        function removeField(button) {
+            const fieldContainer = document.getElementById('formFields');
+            fieldContainer.removeChild(button.parentNode);
+        }
+
+        //Collects the data from the fields and it adds them to the general DataList of the script
+        function saveData() {
+            const currentFormData = [];
+            const formFields = document.getElementById('formFields').children;
+
+            for (const field of formFields) {
+                const label = field.querySelector('label').innerText;
+                const value = field.querySelector('input[type="text"], input[type="radio"]:checked').value;
+                currentFormData.push({ label, value });
+            }
+
+            formDataList.push(currentFormData);
+            updateTable();
+        }
+
+        
+        function updateTable() {
+            const dataTable = document.getElementById('dataTable');
+            const headerRow = dataTable.querySelector('thead tr');
+            const tbody = dataTable.querySelector('tbody');
+
+            // Create the table head
+            if (headerRow.children.length !== formDataList[0].length) {
+                headerRow.innerHTML = '';
+                formDataList[0].forEach(field => {
+                    const headerCell = document.createElement('th');
+                    headerCell.innerHTML = `<strong>${field.label}</strong>`;
+                    headerRow.appendChild(headerCell);
+                });
+            }
+
+            // Update table body
+            tbody.innerHTML = '';
+            formDataList.forEach(formData => {
+                const dataRow = document.createElement('tr');
+                formData.forEach(field => {
+                    const dataCell = document.createElement('td');
+                    dataCell.textContent = field.value;
+                    dataRow.appendChild(dataCell);
+                });
+                tbody.appendChild(dataRow);
+            });
+        }
+    </script>
+</body>
+</html>
